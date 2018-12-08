@@ -30,13 +30,7 @@ pub enum Token {
 
 /// Tokenizes a brainfuck string.
 pub fn tokenize(s: &str) -> Vec<Token> {
-    let mut tokens = Vec::with_capacity(s.len());
-    for c in s.chars() {
-        if let Some(token) = tokenize_char(c) {
-            tokens.push(token);
-        }
-    }
-    tokens
+    s.chars().filter_map(tokenize_char).collect()
 }
 
 fn tokenize_char(c: char) -> Option<Token> {
