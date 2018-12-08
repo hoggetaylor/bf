@@ -20,40 +20,36 @@ pub enum ParseError {
 
 pub fn parse(tokens: &[Token]) -> Result<Vec<Expr>, ParseError> {
     let mut program = Vec::new();
-    let mut iter = tokens.iter();
-    while let Some(token) = iter.next() {
-        let instruction = match token {
-            Token::MoveRight => Expr::MoveRight,
-            Token::MoveLeft => Expr::MoveLeft,
-            Token::Increment => Expr::Increment,
-            Token::Decrement => Expr::Decrement,
-            Token::Output => Expr::Output,
-            Token::Input => Expr::Input,
-            Token::Loop => Expr::Loop(parse_loop_body(&mut iter)?),
-            Token::EndLoop => return Err(ParseError::UnmatchedBracket)
+    let mut stack = Vec::new();
+    for token in tokens {
+        let expr = match token {
+            Token::MoveRight => Some(Expr::MoveRight),
+            Token::MoveLeft => Some(Expr::MoveLeft),
+            Token::Increment => Some(Expr::Increment),
+            Token::Decrement => Some(Expr::Decrement),
+            Token::Output => Some(Expr::Output),
+            Token::Input => Some(Expr::Input),
+            Token::Loop => {
+                stack.push(Vec::new());
+                None
+            },
+            Token::EndLoop => {
+                let body = stack.pop().ok_or(ParseError::UnmatchedBracket)?;
+                Some(Expr::Loop(body))
+            }
         };
-        program.push(instruction);
+        if let Some(expr) = expr {
+            if stack.len() > 0 {
+                stack.last_mut().unwrap().push(expr);
+            } else {
+                program.push(expr);
+            }
+        }
+    }
+    if !stack.is_empty() {
+        return Err(ParseError::UnmatchedBracket);
     }
     Ok(program)
-}
-
-fn parse_loop_body(iter: &mut Iterator<Item=&Token>) -> Result<Vec<Expr>, ParseError> {
-    let mut body = Vec::new();
-    while let Some(token) = iter.next() {
-        let instruction = match token {
-            Token::MoveRight => Expr::MoveRight,
-            Token::MoveLeft => Expr::MoveLeft,
-            Token::Increment => Expr::Increment,
-            Token::Decrement => Expr::Decrement,
-            Token::Output => Expr::Output,
-            Token::Input => Expr::Input,
-            Token::Loop => Expr::Loop(parse_loop_body(iter)?),
-            Token::EndLoop => return Ok(body)
-        };
-        body.push(instruction);
-    }
-    println!("End of loop body with no closing bracket");
-    Err(ParseError::UnmatchedBracket)
 }
 
 #[cfg(test)]
