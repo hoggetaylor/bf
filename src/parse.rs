@@ -1,4 +1,5 @@
 use crate::lex::Token;
+use failure::Fail;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Expr {
@@ -11,8 +12,9 @@ pub enum Expr {
     Loop(Vec<Expr>)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 pub enum ParseError {
+    #[fail(display="Unmatched Bracket")]
     UnmatchedBracket
 }
 

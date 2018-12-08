@@ -1,7 +1,7 @@
 use crate::compile::Instruction;
 use std::io::{self, Read};
 
-pub fn interpret(instructions: Vec<Instruction>) {
+pub fn interpret(instructions: &[Instruction]) {
     let mut instruction_pointer = 0;
     let mut data_pointer = 0;
     let mut data = vec![0u8; 512];
