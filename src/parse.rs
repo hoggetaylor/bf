@@ -19,37 +19,33 @@ pub enum ParseError {
 }
 
 pub fn parse(tokens: &[Token]) -> Result<Vec<Expr>, ParseError> {
-    let mut program = Vec::new();
-    let mut stack = Vec::new();
+    let mut stack = vec![Vec::new()];
     for token in tokens {
         let expr = match token {
-            Token::MoveRight => Some(Expr::MoveRight),
-            Token::MoveLeft => Some(Expr::MoveLeft),
-            Token::Increment => Some(Expr::Increment),
-            Token::Decrement => Some(Expr::Decrement),
-            Token::Output => Some(Expr::Output),
-            Token::Input => Some(Expr::Input),
+            Token::MoveRight => Expr::MoveRight,
+            Token::MoveLeft => Expr::MoveLeft,
+            Token::Increment => Expr::Increment,
+            Token::Decrement => Expr::Decrement,
+            Token::Output => Expr::Output,
+            Token::Input => Expr::Input,
             Token::Loop => {
                 stack.push(Vec::new());
-                None
+                continue;
             },
             Token::EndLoop => {
                 let body = stack.pop().ok_or(ParseError::UnmatchedBracket)?;
-                Some(Expr::Loop(body))
+                Expr::Loop(body)
             }
         };
-        if let Some(expr) = expr {
-            if stack.len() > 0 {
-                stack.last_mut().unwrap().push(expr);
-            } else {
-                program.push(expr);
-            }
-        }
+        let exprs = stack.last_mut().ok_or(ParseError::UnmatchedBracket)?;
+        exprs.push(expr);
     }
-    if !stack.is_empty() {
-        return Err(ParseError::UnmatchedBracket);
+
+    if stack.len() == 1 {
+        Ok(stack.pop().unwrap())
+    } else {
+        Err(ParseError::UnmatchedBracket)
     }
-    Ok(program)
 }
 
 #[cfg(test)]
