@@ -14,8 +14,8 @@ pub fn interpret(instructions: &[Instruction]) {
         match instruction {
             Instruction::MoveRight => data_pointer += 1,
             Instruction::MoveLeft => data_pointer -= 1,
-            Instruction::Increment => data[data_pointer] += 1,
-            Instruction::Decrement => data[data_pointer] -= 1,
+            Instruction::Increment => data[data_pointer] = data[data_pointer].wrapping_add(1),
+            Instruction::Decrement => data[data_pointer] = data[data_pointer].wrapping_sub(1),
             Instruction::Output => print!("{}", data[data_pointer] as char),
             Instruction::Input => io::stdin().read_exact(&mut data[data_pointer..data_pointer+1]).unwrap(),
             Instruction::Loop(loop_end) => {
