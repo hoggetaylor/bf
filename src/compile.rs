@@ -2,33 +2,31 @@ use crate::parse::Expr;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Instruction {
-    MoveRight,
-    MoveLeft,
-    Increment,
-    Decrement,
+    Move(i32),
+    Add(i32),
     Output,
     Input,
-    Loop(usize),
-    EndLoop(usize)
+    JmpEq(usize),
+    JmpNEq(usize)
 }
 
 pub fn compile(exprs: &[Expr], offset: usize) -> Vec<Instruction> {
     let mut instructions = Vec::new();
     for e in exprs {
         let mut ins = match *e {
-            Expr::MoveRight => vec![Instruction::MoveRight],
-            Expr::MoveLeft => vec![Instruction::MoveLeft],
-            Expr::Increment => vec![Instruction::Increment],
-            Expr::Decrement => vec![Instruction::Decrement],
+            Expr::MoveRight => vec![Instruction::Move(1)],
+            Expr::MoveLeft => vec![Instruction::Move(-1)],
+            Expr::Increment => vec![Instruction::Add(1)],
+            Expr::Decrement => vec![Instruction::Add(-1)],
             Expr::Output => vec![Instruction::Output],
             Expr::Input => vec![Instruction::Input],
             Expr::Loop(ref body) => {
                 let loop_begin = offset + instructions.len() + 1;
                 let mut body_instructions = compile(body, loop_begin);
                 let loop_end = loop_begin + body_instructions.len() + 1;
-                let mut loop_instructions = vec![Instruction::Loop(loop_end)];
+                let mut loop_instructions = vec![Instruction::JmpEq(loop_end)];
                 loop_instructions.append(&mut body_instructions);
-                loop_instructions.push(Instruction::EndLoop(loop_begin));
+                loop_instructions.push(Instruction::JmpNEq(loop_begin));
                 loop_instructions
             }
         };
@@ -48,10 +46,10 @@ mod tests {
             vec![Expr::Increment, Expr::Output]
         )];
         assert_eq!(vec![
-            Instruction::Loop(4),
-            Instruction::Increment,
+            Instruction::JmpEq(4),
+            Instruction::Add(1 ),
             Instruction::Output,
-            Instruction::EndLoop(1)
+            Instruction::JmpNEq(1)
         ], compile(&e, 0));
     }
 
@@ -70,16 +68,16 @@ mod tests {
             ])
         ];
         assert_eq!(vec![
-            Instruction::Increment,
-            Instruction::Loop(10),
-            Instruction::Increment,
-            Instruction::Increment,
-            Instruction::Loop(8),
-            Instruction::Increment,
-            Instruction::Increment,
-            Instruction::EndLoop(5),
-            Instruction::Increment,
-            Instruction::EndLoop(2)
+            Instruction::Add(1),
+            Instruction::JmpEq(10),
+            Instruction::Add(1),
+            Instruction::Add(1),
+            Instruction::JmpEq(8),
+            Instruction::Add(1),
+            Instruction::Add(1),
+            Instruction::JmpNEq(5),
+            Instruction::Add(1),
+            Instruction::JmpNEq(2)
         ], compile(&e, 0));
     }
 }

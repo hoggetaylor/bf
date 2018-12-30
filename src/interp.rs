@@ -12,18 +12,16 @@ pub fn interpret(instructions: &[Instruction]) {
         }
         let instruction = instructions[instruction_pointer];
         match instruction {
-            Instruction::MoveRight => data_pointer += 1,
-            Instruction::MoveLeft => data_pointer -= 1,
-            Instruction::Increment => data[data_pointer] = data[data_pointer].wrapping_add(1),
-            Instruction::Decrement => data[data_pointer] = data[data_pointer].wrapping_sub(1),
+            Instruction::Move(i) => data_pointer = ((data_pointer as i32) + i) as usize,
+            Instruction::Add(i) => data[data_pointer] = ((data[data_pointer] as i32 + i) % 256) as u8,
             Instruction::Output => print!("{}", data[data_pointer] as char),
             Instruction::Input => io::stdin().read_exact(&mut data[data_pointer..data_pointer+1]).unwrap(),
-            Instruction::Loop(loop_end) => {
+            Instruction::JmpEq(loop_end) => {
                 if data[data_pointer] == 0 {
                     instruction_pointer = loop_end - 1;
                 }
             },
-            Instruction::EndLoop(loop_begin) => {
+            Instruction::JmpNEq(loop_begin) => {
                 if data[data_pointer] != 0 {
                     instruction_pointer = loop_begin - 1;
                 }
