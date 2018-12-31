@@ -14,10 +14,8 @@ pub fn compile(exprs: &[Expr], offset: usize) -> Vec<Instruction> {
     let mut instructions = Vec::new();
     for e in exprs {
         let mut ins = match *e {
-            Expr::MoveRight => vec![Instruction::Move(1)],
-            Expr::MoveLeft => vec![Instruction::Move(-1)],
-            Expr::Increment => vec![Instruction::Add(1)],
-            Expr::Decrement => vec![Instruction::Add(-1)],
+            Expr::Move(i) => vec![Instruction::Move(i)],
+            Expr::Add(i) => vec![Instruction::Add(i)],
             Expr::Output => vec![Instruction::Output],
             Expr::Input => vec![Instruction::Input],
             Expr::Loop(ref body) => {
@@ -43,7 +41,7 @@ mod tests {
     #[test]
     fn test_compile() {
         let e = vec![Expr::Loop(
-            vec![Expr::Increment, Expr::Output]
+            vec![Expr::Add(1), Expr::Output]
         )];
         assert_eq!(vec![
             Instruction::JmpEq(4),
@@ -56,15 +54,15 @@ mod tests {
     #[test]
     fn test_compile_nested_loops() {
         let e = vec![
-            Expr::Increment,
+            Expr::Add(1),
             Expr::Loop(vec![
-                Expr::Increment,
-                Expr::Increment,
+                Expr::Add(1),
+                Expr::Add(1),
                 Expr::Loop(vec![
-                    Expr::Increment,
-                    Expr::Increment
+                    Expr::Add(1),
+                    Expr::Add(1)
                 ]),
-                Expr::Increment
+                Expr::Add(1)
             ])
         ];
         assert_eq!(vec![

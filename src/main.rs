@@ -2,11 +2,13 @@ mod lex;
 mod parse;
 mod compile;
 mod interp;
+mod optimize;
 
 use crate::lex::tokenize;
 use crate::parse::parse;
 use crate::compile::compile;
 use crate::interp::interpret;
+use crate::optimize::optimize;
 
 use std::fs::File;
 use std::io::{self, Read};
@@ -35,7 +37,8 @@ fn run() -> Result<(), Error> {
     let src = read_source(opt.file)?;
     let tokens = tokenize(&src);
     let parsed = parse(&tokens)?;
-    let instructions = compile(&parsed, 0);
+    let optimized = optimize(&parsed);
+    let instructions = compile(&optimized, 0);
     interpret(&instructions);
     Ok(())
 }
